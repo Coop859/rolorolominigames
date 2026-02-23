@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RoloPolotv – Daily Mini Game Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #050508;
+      --surface:  #0d0d18;
+      --card:     #10101e;
+      --border:   #1e1e36;
+      --neon-g:   #39FF14;
+      --neon-b:   #00EEFF;
+      --neon-p:   #BF5FFF;
+      --neon-o:   #FF6D00;
+      --neon-pk:  #FF2D78;
+      --neon-y:   #FFE600;
+      --neon-t:   #00FFD0;
+      --neon-r:   #FF3131;
+      --neon-ind: #7B7FFF;
+      --text:     #e8e8f0;
+      --muted:    #5a5a7a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Grid bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(57,255,20,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57,255,20,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ======== HEADER ======== */
+    header {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 56px 20px 52px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .header-glow {
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(57,255,20,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .kick-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(83,252,24,0.08);
+      border: 1px solid rgba(83,252,24,0.4);
+      border-radius: 4px;
+      padding: 7px 18px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #53FC18;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .kick-badge:hover {
+      background: rgba(83,252,24,0.15);
+      box-shadow: 0 0 20px rgba(83,252,24,0.2);
+    }
+    .kick-dot {
+      width: 7px; height: 7px;
+      background: #53FC18;
+      border-radius: 50%;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px #53FC18; }
+      50% { opacity: 0.4; box-shadow: none; }
+    }
+
+    header h1 {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: 0.04em;
+    }
+    .h1-name {
+      display: block;
+      color: var(--neon-g);
+      text-shadow: 0 0 20px rgba(57,255,20,0.6), 0 0 60px rgba(57,255,20,0.2);
+    }
+    .h1-sub {
+      display: block;
+      color: var(--text);
+      font-size: 0.6em;
+      letter-spacing: 0.2em;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 22px;
+      text-transform: uppercase;
+    }
+
+    .today-banner {
+      display: inline-block;
+      border: 1px solid var(--border);
+      color: var(--neon-b);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      padding: 7px 20px;
+      border-radius: 2px;
+      text-shadow: 0 0 10px rgba(0,238,255,0.5);
+    }
+
+    .friday-notice {
+      display: none;
+      margin: 12px auto 0;
+      max-width: 380px;
+      background: rgba(255,45,120,0.08);
+      border: 1px solid rgba(255,45,120,0.5);
+      color: var(--neon-pk);
+      font-weight: 800;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      padding: 9px 22px;
+      text-shadow: 0 0 10px rgba(255,45,120,0.5);
+    }
+    .friday-notice.show { display: block; }
+
+    /* ======== MAIN ======== */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 36px 20px 70px;
+    }
+
+    .section-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--neon-g);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 0 10px rgba(57,255,20,0.4);
+    }
+    .section-label::before {
+      content: '';
+      width: 3px; height: 14px;
+      background: var(--neon-g);
+      box-shadow: 0 0 8px var(--neon-g);
+      border-radius: 1px;
+      flex-shrink: 0;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, rgba(57,255,20,0.3), transparent);
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 18px;
+    }
+
+    /* ======== GAME CARD ======== */
+    .game-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      animation: card-in 0.4s ease both;
+    }
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent, var(--neon-g));
+      box-shadow: 0 0 12px var(--accent, var(--neon-g));
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent, var(--neon-g));
+      box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 0 1px var(--accent, var(--neon-g)),
+                  inset 0 0 40px rgba(0,0,0,0.3);
+    }
+    .game-card:hover::before { opacity: 1; }
+    .game-card:hover .card-arrow { transform: translateX(5px); color: var(--accent, var(--neon-g)); opacity: 1; }
+    .game-card:hover .play-btn { box-shadow: 0 0 16px var(--accent, var(--neon-g)); }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .game-card:nth-child(1) { animation-delay: 0.04s; }
+    .game-card:nth-child(2) { animation-delay: 0.08s; }
+    .game-card:nth-child(3) { animation-delay: 0.12s; }
+    .game-card:nth-child(4) { animation-delay: 0.16s; }
+    .game-card:nth-child(5) { animation-delay: 0.20s; }
+    .game-card:nth-child(6) { animation-delay: 0.24s; }
+    .game-card:nth-child(7) { animation-delay: 0.28s; }
+    .game-card:nth-child(8) { animation-delay: 0.32s; }
+    .game-card:nth-child(9) { animation-delay: 0.36s; }
+
+    .card-body { padding: 20px 20px 16px; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      width: 46px; height: 46px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .card-title { flex: 1; }
+    .game-number {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .game-name {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+    }
+
+    .card-arrow {
+      font-size: 1rem;
+      color: var(--muted);
+      opacity: 0.5;
+      transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s;
+      margin-top: 4px;
+    }
+
+    .game-desc {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #7070a0;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .game-tag {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 2px;
+      color: var(--accent, var(--neon-g));
+      border: 1px solid var(--accent, var(--neon-g));
+      background: transparent;
+      opacity: 0.7;
+    }
+
+    .play-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--accent, var(--neon-g));
+      padding: 7px 14px;
+      border-radius: 2px;
+      transition: box-shadow 0.2s;
+    }
+
+    /* ======== ACCENT COLORS PER CARD ======== */
+    .c-green  { --accent: #39FF14; }
+    .c-orange { --accent: #FF6D00; }
+    .c-teal   { --accent: #00FFD0; }
+    .c-yellow { --accent: #FFE600; }
+    .c-blue   { --accent: #00EEFF; }
+    .c-indigo { --accent: #7B7FFF; }
+    .c-red    { --accent: #FF3131; }
+    .c-purple { --accent: #BF5FFF; }
+    .c-pink   { --accent: #FF2D78; }
+
+    /* ======== FRIDAY SECTION ======== */
+    .friday-section { margin-top: 48px; }
+    .friday-section .section-label {
+      color: var(--neon-pk);
+      text-shadow: 0 0 10px rgba(255,45,120,0.4);
+    }
+    .friday-section .section-label::before {
+      background: var(--neon-pk);
+      box-shadow: 0 0 8px var(--neon-pk);
+    }
+    .friday-section .section-label::after {
+      background: linear-gradient(to right, rgba(255,45,120,0.3), transparent);
+    }
+
+    /* ======== FOOTER ======== */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 28px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    footer a { color: var(--neon-g); text-decoration: none; }
+    footer a:hover { text-shadow: 0 0 10px var(--neon-g); }
+
+    @media (max-width: 480px) {
+      .games-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-glow"></div>
+  <a class="kick-badge" href="https://kick.com/rolopolo" target="_blank" rel="noopener">
+    <span class="kick-dot"></span> RoloPolotv — Live on Kick
+  </a>
+  <h1>
+    <span class="h1-name">ROLOPOLO</span>
+    <span class="h1-sub">// Mini Game Hub</span>
+  </h1>
+  <p>All daily warm-up games · One page</p>
+  <div class="today-banner" id="today-banner">LOADING...</div>
+  <div class="friday-notice" id="friday-notice">⚡ FRIDAY ACTIVATED — THE SMOKING GUN IS LIVE</div>
+</header>
+
+<main>
+  <div class="section-label">Daily Rotation</div>
+  <div class="games-grid">
+
+    <a class="game-card c-green" href="https://www.nytimes.com/games/wordle/index.html" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🟩</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 01</div>
+            <div class="game-name">WORDLE</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Guess the secret 5-letter word in 6 tries. Green = right letter, right spot. Yellow = right letter, wrong spot. One shot per day.</p>
+        <div class="card-footer">
+          <span class="game-tag">Word</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-orange" href="https://contexto.me/" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🧠</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 02</div>
+            <div class="game-name">CONTEXTO</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">AI ranks every guess by semantic proximity to the hidden word. No letter clues — pure concept. Unlimited guesses, infinite rabbit holes.</p>
+        <div class="card-footer">
+          <span class="game-tag">Word · AI</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-teal" href="https://housle.house/" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🏠</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 03</div>
+            <div class="game-name">HOUSLE</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Guess the listing price of a real home. Photos and clues unlock with each wrong answer. How sharp is your real estate radar?</p>
+        <div class="card-footer">
+          <span class="game-tag">Real Estate</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-yellow" href="https://www.nytimes.com/games/connections" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🔗</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 04</div>
+            <div class="game-name">NYT CONNECTIONS</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Sort 16 words into 4 hidden categories. Every word fits exactly one group — but the traps are everywhere. Four colors, zero mercy.</p>
+        <div class="card-footer">
+          <span class="game-tag">Trivia · Word</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-blue" href="https://www.bostonglobe.com/games/mini-crossword/" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">✏️</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 05</div>
+            <div class="game-name">BG MINI CROSSWORD</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Boston Globe's daily bite-sized crossword. Quick, satisfying, and surprisingly devious. Fresh puzzle every single day.</p>
+        <div class="card-footer">
+          <span class="game-tag">Crossword</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-indigo" href="https://www.puckdoku.com/" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🏒</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 06</div>
+            <div class="game-name">PUCKDOKU</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Fill a 3×3 grid with NHL players matching both row AND column criteria. No repeats. Pure hockey IQ required — no guessing your way out.</p>
+        <div class="card-footer">
+          <span class="game-tag">Hockey · Grid</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-red" href="https://www.geoguessr.com/" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🌍</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 07</div>
+            <div class="game-name">GEOGUESSR</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Dropped into a random Street View somewhere on Earth. Use signs, terrain, architecture, and instinct to pin your location. Closer = more points.</p>
+        <div class="card-footer">
+          <span class="game-tag">Geography</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-purple" href="https://bandle.app/daily" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🎵</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 08</div>
+            <div class="game-name">BANDLE</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Identify a song from isolated instrument tracks. Each wrong guess peels back another layer — guitar, bass, drums, vocals revealed one by one.</p>
+        <div class="card-footer">
+          <span class="game-tag">Music</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="game-card c-pink" href="https://spotle.io/" target="_blank" rel="noopener">
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-icon">🎤</div>
+          <div class="card-title">
+            <div class="game-number">// GAME 09</div>
+            <div class="game-name">SPOTLE</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <p class="game-desc">Guess the mystery music artist from clues — genre, era, nationality, chart rank. Wordle mechanics, Spotify data. How deep does your music knowledge go?</p>
+        <div class="card-footer">
+          <span class="game-tag">Music · Artist</span>
+          <span class="play-btn">Launch →</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- FRIDAY -->
+  <div class="friday-section">
+    <div class="section-label">Friday Only</div>
+    <div class="games-grid">
+      <a class="game-card c-pink" href="https://thesmokinggun.com/time-waster" target="_blank" rel="noopener">
+        <div class="card-body">
+          <div class="card-header">
+            <div class="card-icon">🔍</div>
+            <div class="card-title">
+              <div class="game-number">// FRIDAY SPECIAL</div>
+              <div class="game-name">THE SMOKING GUN</div>
+            </div>
+            <div class="card-arrow">→</div>
+          </div>
+          <p class="game-desc">True crime trivia from The Smoking Gun archives. Bizarre mugshots, scandalous real-life stories, and strange-but-true facts. RoloPolo's Friday tradition — don't miss it.</p>
+          <div class="card-footer">
+            <span class="game-tag">Trivia · Crime</span>
+            <span class="play-btn">Launch →</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Built for <a href="https://kick.com/rolopolo" target="_blank" rel="noopener">RoloPolotv</a> &amp; the community &nbsp;·&nbsp; All games belong to their respective creators
+</footer>
+
+<script>
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const now    = new Date();
+  document.getElementById('today-banner').textContent =
+    `// ${days[now.getDay()].toUpperCase()} · ${months[now.getMonth()]} ${String(now.getDate()).padStart(2,'0')} · ${now.getFullYear()}`;
+  if (now.getDay() === 5) {
+    document.getElementById('friday-notice').classList.add('show');
+  }
+</script>
+</body>
+</html>
