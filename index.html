@@ -498,26 +498,6 @@
       line-height: 1.5;
     }
 
-    .no-comments {
-      text-align: center;
-      padding: 30px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-light);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border: 2px dashed var(--cream-dark);
-      border-radius: 3px;
-    }
-
-    .comments-loading {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.85rem;
-      color: var(--text-light);
-      letter-spacing: 0.1em;
-    }
-
     /* ======== FOOTER ======== */
     footer {
       position: relative; z-index: 1;
@@ -774,21 +754,25 @@
   <div class="community-section">
     <div class="section-label">Community</div>
 
-    <!-- Submit form -->
+    <!-- Giscus Comments -->
     <div class="comment-box">
-      <h3>💬 Leave a Comment or Game Suggestion</h3>
-      <div class="comment-fields">
-        <input class="comment-input" id="c-name"    type="text" placeholder="Your name / username" maxlength="40"/>
-        <input class="comment-input" id="c-subject" type="text" placeholder="Subject (e.g. Game Suggestion)" maxlength="60"/>
-        <textarea class="comment-textarea" id="c-text" placeholder="What's on your mind? Suggest a game, leave a shoutout, or just say hi!" maxlength="500"></textarea>
-      </div>
-      <button class="comment-submit" id="c-submit" onclick="submitComment()">Post Comment</button>
-      <div class="comment-status" id="c-status"></div>
-    </div>
-
-    <!-- Comments list -->
-    <div id="comments-list" class="comments-list">
-      <div class="comments-loading">Loading comments...</div>
+      <h3>💬 Comments &amp; Game Suggestions</h3>
+      <p style="font-size:0.85rem;font-weight:600;color:var(--text-mid);margin-bottom:18px;">Sign in with GitHub to leave a comment, suggest a game, or just say hi!</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="Coop859/rolorolominigames"
+        data-repo-id="R_kgDORXE3og"
+        data-category="General"
+        data-category-id="DIC_kwDORXE3os4C4PKU"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+      </script>
     </div>
   </div>
 
@@ -807,86 +791,7 @@
     `${days[now.getDay()].toUpperCase()}  ·  ${months[now.getMonth()]} ${String(now.getDate()).padStart(2,'0')}  ·  ${now.getFullYear()}`;
   if (now.getDay() === 5) document.getElementById('friday-notice').classList.add('show');
 
-  // ── Comments via window.storage ──
-  const STORAGE_KEY = 'rolopolo-comments-v1';
 
-  function formatDate(ts) {
-    const d = new Date(ts);
-    return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
-      + '  ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-  }
-
-  function renderComments(comments) {
-    const list = document.getElementById('comments-list');
-    if (!comments || comments.length === 0) {
-      list.innerHTML = '<div class="no-comments">No comments yet — be the first to say something!</div>';
-      return;
-    }
-    // Newest first
-    const sorted = [...comments].sort((a,b) => b.ts - a.ts);
-    list.innerHTML = sorted.map(c => `
-      <div class="comment-item">
-        <div class="comment-meta">
-          <span class="comment-author">${escHtml(c.name)}</span>
-          <span class="comment-date">${formatDate(c.ts)}${c.subject ? '  ·  ' + escHtml(c.subject) : ''}</span>
-        </div>
-        <div class="comment-text">${escHtml(c.text)}</div>
-      </div>
-    `).join('');
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  async function loadComments() {
-    try {
-      const result = await window.storage.get(STORAGE_KEY, true);
-      const comments = result ? JSON.parse(result.value) : [];
-      renderComments(comments);
-    } catch(e) {
-      renderComments([]);
-    }
-  }
-
-  async function submitComment() {
-    const name    = document.getElementById('c-name').value.trim();
-    const subject = document.getElementById('c-subject').value.trim();
-    const text    = document.getElementById('c-text').value.trim();
-    const status  = document.getElementById('c-status');
-    const btn     = document.getElementById('c-submit');
-
-    if (!name)  { status.textContent = '⚠ Please enter your name.'; return; }
-    if (!text)  { status.textContent = '⚠ Please write a comment.'; return; }
-
-    btn.disabled = true;
-    status.textContent = 'Posting...';
-
-    try {
-      let comments = [];
-      try {
-        const existing = await window.storage.get(STORAGE_KEY, true);
-        if (existing) comments = JSON.parse(existing.value);
-      } catch(e) {}
-
-      comments.push({ name, subject, text, ts: Date.now() });
-      // Keep max 100 comments
-      if (comments.length > 100) comments = comments.slice(-100);
-
-      await window.storage.set(STORAGE_KEY, JSON.stringify(comments), true);
-
-      document.getElementById('c-name').value    = '';
-      document.getElementById('c-subject').value = '';
-      document.getElementById('c-text').value    = '';
-      status.textContent = '✅ Comment posted!';
-      renderComments(comments);
-    } catch(e) {
-      status.textContent = '❌ Could not post comment. Try again.';
-    }
-    btn.disabled = false;
-  }
-
-  loadComments();
 </script>
 </body>
 </html>
